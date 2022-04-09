@@ -1,0 +1,13 @@
+apikey = "227ac12e-6e8f-4897-a379-260836cf3a72"
+secretkey = "6C3D8698FC2D59729FBB63A44EAEF88B"
+IP = ""
+備注名 = "okBot"
+權限 = "只讀/交易"
+
+
+apikey = "2bb09a77-fc75-4da7-8eed-89d07fbe2d67"
+secretkey = "E842569C02B22D0787710AC91D06C68D"
+IP = ""
+備注名 = "okBotV"
+權限 = "只讀/交易"
+
