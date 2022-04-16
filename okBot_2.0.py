@@ -38,11 +38,12 @@ exchange_ret = float(input("持倉差 % : "))/100
 m = int(input("槓桿倍數 : "))
 
 text = ""
+l = 2
 
 while True:
 
 	
-	#try:
+	try:
 		balance = float(str(tradingDataAPI.get_margin_lending_ratio(coin)))
 		result = marketAPI.get_index_candlesticks(coin+"-USDT")
 		price = float(str(result).split(", ")[3].replace("'", ""))
@@ -51,8 +52,7 @@ while True:
 			np.save("price", price)
 			np.save("get", total)
 			st = 1
-		if balance > exchange_ret+1:
-		
+		if balance < exchange_ret+1 and l != 1:
 			try:
 				tradeAPI.close_positions(coin+"-USDT", 'cross', ccy='USDT')
 			except:
@@ -60,14 +60,12 @@ while True:
 			result = tradeAPI.place_order(instId=coin+"-USDT", tdMode='cross', side='sell', ordType='market', sz=str(every_exchange_amount*m/price), ccy='USDT')
 			accountAPI.set_leverage(instId=coin+"-USDT", lever=str(m), mgnMode='cross')
 			
-			if "'code': '0'," in result:
+			if "'code': '0'," in str(result):
 				np.save("price", price)
-				high_price = price
-				low_price = price
-				text += " 做空成功!!!  交易價格 : "+str(price)
+				l = 1
+				text += " 做空成功!!!  交易價格 : "+str(price)+"\n"
 				
-		if balance < exchange_ret+1:
-
+		if balance > exchange_ret+1 and l != 0:
 			try:
 				tradeAPI.close_positions(coin+"-USDT", 'cross', ccy='USDT')
 			except:
@@ -75,18 +73,17 @@ while True:
 			result = tradeAPI.place_order(instId=coin+"-USDT", tdMode='cross', side='buy', ordType='market', sz=str(every_exchange_amount*m), ccy='USDT')
 			accountAPI.set_leverage(instId=coin+"-USDT", lever=str(m), mgnMode='cross')
 			
-			if "'code': '0'," in result:
+			if "'code': '0'," in str(result):
 				np.save("price", price)
-				high_price = price
-				low_price = price
-				text += " 買入成功!!!  交易價格 : "+str(price)
+				l = 0
+				text += "做多成功!!!  交易價格 : "+str(price)+"\n"
 			
 		os.system("clear")
 		print(text)
 		print("\n ------------------------------------------\n", "當前價格 :", '%.10f'%price,"\n","目前最高價 :",high_price,"\n","目前最低價 :",low_price,"\n","平衡價格 :", np.load("price.npy"),"\n ------------------------------------------")
 		print(" 總資金(USDT) :", total, "\n", "獲利(USDT) :", total-np.load("get.npy"),  "\n","獲利年化 :", ((total-np.load("get.npy"))/total)*86400/(time.time()-start_time), "%\n ------------------------------------------\n")
 		time.sleep(10)
-	#except:
+	except:
 		print(" error : 網路錯誤 或是 資金不足")
 		time.sleep(10)
 		
