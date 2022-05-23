@@ -1,7 +1,4 @@
 import json
-from playsound import playsound
-import matplotlib.pyplot as plt
-import pandas as pd
 
 import okx.Account_api as Account
 import okx.Funding_api as Funding
@@ -22,9 +19,9 @@ start_time = time.time()
 os.system("clear")
 
 st = 0
-flag = '1'
-api_key = "4853c50a-59bd-4e17-9362-ec4d7f0bf0e7"
-secret_key = "71402F7518D11459F7DA432E0B7B7D57"
+flag = '0'
+api_key = "227ac12e-6e8f-4897-a379-260836cf3a72"
+secret_key = "6C3D8698FC2D59729FBB63A44EAEF88B"
 passphrase = "@@pupu9521"
 
 tradingDataAPI = TradingData.TradingDataAPI(api_key, secret_key, passphrase, False, flag)
@@ -36,13 +33,10 @@ publicAPI = Public.PublicAPI(api_key, secret_key, passphrase, False, flag)
 tradeAPI = Trade.TradeAPI(api_key, secret_key, passphrase, False, flag)
 
 coin = input("交易貨幣 : ")
-m = input("槓桿倍數 : ")
 every_exchange_amount = float(input("單次交易量(USDT) : "))
 exchange_ret = float(input("回撤價差 : "))
 exchange_spread = float(input("安全價差 : "))
 
-buy_var = 0
-sell_var = 0
 
 text = ""
 while True:
@@ -52,14 +46,13 @@ while True:
 		result = marketAPI.get_index_candlesticks(coin)
 		
 		strK = str(marketAPI.get_markprice_candlesticks(coin+"-USDT")).replace("'code': '0', 'msg': '', 'data': ", "").replace("'", "").replace("[", "").replace("{", "").replace("]", "").replace("}", "").split(", ")
-		
 		k = []
 		
 		for i in range(len(strK), 0, -1):
 			if (i%5 != 0):
 				k += [float(strK[i])]
 				
-		price = sum(k[-6:-1])/5
+		price = sum(k[-4:-1])/3
 
 		total = float(str(fundingAPI.get_asset_valuation(ccy = 'USDT')).split(", ")[4].split("'")[3])-218263.75*int(flag)
 		x = []
@@ -76,67 +69,47 @@ while True:
 			
 			st = 1
 		if price > high_price:
+			tradeAPI.cancel_order(coin+"-USDT")
 			high_price = price
 
 		if price < low_price:
+			tradeAPI.cancel_order(coin+"-USDT")
 			low_price = price
 
-		if price > np.load("price.npy")+exchange_spread and high_price > price+exchange_ret:
-
-			np.save("price", price)
-			high_price = price
-			low_price = price
-			sell_var += 1
-			buy_var = 0
-				
-		if price < np.load("price.npy")-exchange_spread and low_price < price-exchange_ret:
+		if price > np.load("price.npy")+exchange_spread:
 
 			np.save("price", price)
-			high_price = price
-			low_price = price
-			buy_var += 1
-			sell_var = 0
-		
-		if sell_var > 1:
-		
-			tradeAPI.close_positions(coin+"-USDT", 'cross', ccy='USDT')
-			result = tradeAPI.place_order(instId=coin+"-USDT", tdMode='cross', side='sell', ordType='market', sz=str(every_exchange_amount/price*int(m)), ccy='USDT')
-			accountAPI.set_leverage(instId=coin+"-USDT", lever=str(m), mgnMode='cross')
+			result = tradeAPI.place_order(instId=coin+"-USDT", tdMode='cash', side='sell', ordType='limit', px=str(high_price-exchange_ret), sz=str(every_exchange_amount/price))
 			
-			if "'code': '0'," in result:			
+			if "code': '0" in str(result):
+				high_price = price
+				low_price = price
 				text += " 賣出成功!!!  交易價格 : "+str(price)
-				sell_var = 0
 				
-		elif buy_var > 1:
-		
-			tradeAPI.close_positions(coin+"-USDT", 'cross', ccy='USDT')
-			result = tradeAPI.place_order(instId=coin+"-USDT", tdMode='cross', side='buy', ordType='market', sz=str(every_exchange_amount*int(m)), ccy='USDT')
-			accountAPI.set_leverage(instId=coin+"-USDT", lever=str(m), mgnMode='cross')
+		if price < np.load("price.npy")-exchange_spread:
+
+			np.save("price", price)
+			result = tradeAPI.place_order(instId=coin+"-USDT", tdMode='cash', side='buy', ordType='limit', px=str(low_price+exchange_ret), sz=str(every_exchange_amount))
 			
-			if "'code': '0'," in result:
+			if "code': '0" in str(result):
+				high_price = price
+				low_price = price
 				text += " 買入成功!!!  交易價格 : "+str(price)
-				buy_var = 0
-			
+		
 		os.system("clear")
 		print(text)
 		print("\n ------------------------------------------\n", "當前價格 :", '%.10f'%price,"\n","目前最高價 :",high_price,"\n","目前最低價 :",low_price,"\n","平衡價格 :", np.load("price.npy"),"\n ------------------------------------------")
-		print(" 總資金(USDT) :", total, "\n", "獲利(USDT) :", total-np.load("get.npy"),  "\n","獲利年化 :", ((total-np.load("get.npy"))/total)*86400/(time.time()-start_time), "%\n ------------------------------------------")
-		print(" buy_var :", buy_var)
-		print(" sell_var :", sell_var)
+		print(" 總資金(USDT) :", total, "\n", "獲利(USDT) :", total-np.load("get.npy"),  "\n","獲利年化 :", ((total-np.load("get.npy"))/total)*86400/(time.time()-start_time))
 		print("------------------------------------------")
 		print(" 單次交易量 :", every_exchange_amount)
 		print(" 回撤價差 :", exchange_ret)
 		print(" 安全價差 :", exchange_spread)
 		
-		plt.clf()
-		plt.xlabel('Time')
-		plt.title(coin)
-		plt.plot(x, k, color='r')		
-		plt.savefig("okBot_picture/"+coin+"-sell-buy.png", dpi=200)
-		time.sleep(5)
+		time.sleep(3)
 	except:
 		print(" error : 網路錯誤 或是 資金不足")
-		time.sleep(5)
+		print(result)
+		time.sleep(3)
 
 	# result = accountAPI.get_account('USDT')
 	# 查看账户持仓风险 GET Position_risk
