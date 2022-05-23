@@ -105,11 +105,11 @@ while True:
 		print(" 回撤價差 :", exchange_ret)
 		print(" 安全價差 :", exchange_spread)
 		
-		time.sleep(3)
+		time.sleep(5)
 	except:
 		print(" error : 網路錯誤 或是 資金不足")
 		print(result)
-		time.sleep(3)
+		time.sleep(5)
 
 	# result = accountAPI.get_account('USDT')
 	# 查看账户持仓风险 GET Position_risk
