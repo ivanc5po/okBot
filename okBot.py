@@ -20,9 +20,9 @@ os.system("clear")
 
 st = 0
 flag = '0'
-api_key = "XXXXXXXXXXXXXXXXXX"
-secret_key = "XXXXXXXXXXXXXXX"
-passphrase = "XXXXXXXXXXXXXXX"
+api_key = "XXX"
+secret_key = "XXX"
+passphrase = "XXX"
 
 tradingDataAPI = TradingData.TradingDataAPI(api_key, secret_key, passphrase, False, flag)
 accountAPI = Account.AccountAPI(api_key, secret_key, passphrase, False, flag)
@@ -33,82 +33,73 @@ publicAPI = Public.PublicAPI(api_key, secret_key, passphrase, False, flag)
 tradeAPI = Trade.TradeAPI(api_key, secret_key, passphrase, False, flag)
 
 coin = input("交易貨幣 : ")
-every_exchange_amount = float(input("單次交易量(USDT) : "))
-exchange_ret = float(input("回撤價差 : "))
-exchange_spread = float(input("安全價差 : "))
+Split = float(input("資金分割數(USDT) : "))
+exchange_spread = float(input("價差 : "))
 
-
+result = ""
 text = ""
 while True:
-	
-	
+
 	try:
-		result = marketAPI.get_index_candlesticks(coin)
-		
+
 		strK = str(marketAPI.get_markprice_candlesticks(coin+"-USDT")).replace("'code': '0', 'msg': '', 'data': ", "").replace("'", "").replace("[", "").replace("{", "").replace("]", "").replace("}", "").split(", ")
 		k = []
-		
+
 		for i in range(len(strK), 0, -1):
 			if (i%5 != 0):
 				k += [float(strK[i])]
-				
-		price = sum(k[-4:-1])/3
+
+		price = k[-1]
 
 		total = float(str(fundingAPI.get_asset_valuation(ccy = 'USDT')).split(", ")[4].split("'")[3])-218263.75*int(flag)
-		x = []
-		for i in range(len(k)):
-			x += [i]
-		
+		every_exchange_amount = total/Split
+
 		if st == 0:
 			np.save("price", price)
 			np.save("get", total)
 			high_price = price
 			low_price = price
-			
-
-			
+			result = tradeAPI.place_order(instId=coin+"-USDT", tdMode='cash', side='sell', ordType='limit', px=str(price+exchange_spread), sz=str(every_exchange_amount))
+			result = tradeAPI.place_order(instId=coin+"-USDT", tdMode='cash', side='buy', ordType='limit', px=str(price-exchange_spread), sz=str(every_exchange_amount))
 			st = 1
+
 		if price > high_price:
-			tradeAPI.cancel_order(coin+"-USDT")
 			high_price = price
 
-		if price < low_price:
-			tradeAPI.cancel_order(coin+"-USDT")
+		elif price < low_price:
 			low_price = price
 
-		if price > np.load("price.npy")+exchange_spread:
-
+		elif price > np.load("price.npy")+exchange_spread:
 			np.save("price", price)
-			result = tradeAPI.place_order(instId=coin+"-USDT", tdMode='cash', side='sell', ordType='limit', px=str(high_price-exchange_ret), sz=str(every_exchange_amount/price))
-			
+			result = tradeAPI.place_order(instId=coin+"-USDT", tdMode='cash', side='sell', ordType='limit', px=str(price+exchange_spread), sz=str(every_exchange_amount))
+			result = tradeAPI.place_order(instId=coin+"-USDT", tdMode='cash', side='buy', ordType='limit', px=str(price-exchange_spread), sz=str(every_exchange_amount))
 			if "code': '0" in str(result):
 				high_price = price
 				low_price = price
-				text += " 賣出成功!!!  交易價格 : "+str(price)
+				text += " 賣出成功!!!  交易價格 : "+str(price)+"\n"
 				
-		if price < np.load("price.npy")-exchange_spread:
-
+		elif price < np.load("price.npy")-exchange_spread:
 			np.save("price", price)
-			result = tradeAPI.place_order(instId=coin+"-USDT", tdMode='cash', side='buy', ordType='limit', px=str(low_price+exchange_ret), sz=str(every_exchange_amount))
-			
+			result = tradeAPI.place_order(instId=coin+"-USDT", tdMode='cash', side='buy', ordType='limit', px=str(price-exchange_spread), sz=str(every_exchange_amount))
+			result = tradeAPI.place_order(instId=coin+"-USDT", tdMode='cash', side='sell', ordType='limit', px=str(price+exchange_spread), sz=str(every_exchange_amount))
 			if "code': '0" in str(result):
 				high_price = price
 				low_price = price
-				text += " 買入成功!!!  交易價格 : "+str(price)
+				text += " 買入成功!!!  交易價格 : "+str(price)+"\n"
 		
 		os.system("clear")
 		print(text)
 		print("\n ------------------------------------------\n", "當前價格 :", '%.10f'%price,"\n","目前最高價 :",high_price,"\n","目前最低價 :",low_price,"\n","平衡價格 :", np.load("price.npy"),"\n ------------------------------------------")
-		print(" 總資金(USDT) :", total, "\n", "獲利(USDT) :", total-np.load("get.npy"),  "\n","獲利年化 :", ((total-np.load("get.npy"))/total)*86400/(time.time()-start_time))
-		print("------------------------------------------")
-		print(" 單次交易量 :", every_exchange_amount)
-		print(" 回撤價差 :", exchange_ret)
-		print(" 安全價差 :", exchange_spread)
-		
+		print(" 總資金(USDT) :", total, "\n", "獲利(USDT) :", total-np.load("get.npy"),  "\n","獲利年化 :", ((total-np.load("get.npy"))/total)*86400/(time.time()-start_time)*36500, "%")
+		print(" ------------------------------------------")
+		print(" 單次交易量(USDT) :", every_exchange_amount)
+		print(" 價差(USDT) :", exchange_spread)
+		print()
+		print("code': '0" in str(result))
+		result = ""
 		time.sleep(5)
 	except:
 		print(" error : 網路錯誤 或是 資金不足")
-		print(result)
 		time.sleep(5)
 
 	# result = accountAPI.get_account('USDT')
