@@ -38,7 +38,8 @@ Split = float(input("資金分割數(USDT) : "))
 exchange_spread = float(input("價差 : "))
 
 try:
-	
+	import sys
+	sys.path.insert(0,'/usr/lib/chromium-browser/chromedriver')
 	import numpy as np
 	from selenium import webdriver
 	chrome_options = webdriver.ChromeOptions()
@@ -58,6 +59,8 @@ except:
 	
 	import numpy as np
 	from selenium import webdriver
+	import sys
+	sys.path.insert(0,'/usr/lib/chromium-browser/chromedriver')
 	chrome_options = webdriver.ChromeOptions()
 	chrome_options.add_argument('--headless')
 	chrome_options.add_argument('--no-sandbox')
