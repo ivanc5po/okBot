@@ -38,36 +38,25 @@ Split = float(input("資金分割數(USDT) : "))
 exchange_spread = float(input("價差 : "))
 
 try:
-	import sys
-	sys.path.insert(0,'/usr/lib/chromium-browser/chromedriver')
 	import numpy as np
 	from selenium import webdriver
-	os.system("cp /usr/lib/chromium-browser/chromedriver /usr/bin")
-	chrome_options = webdriver.ChromeOptions()
-	chrome_options.add_argument('--headless')
-	chrome_options.add_argument('--no-sandbox')
-	chrome_options.add_argument('--disable-dev-shm-usage')
-	wd = webdriver.Chrome('chromedriver',chrome_options=chrome_options)
-	wd.get('https://www.okx.com/hk/trade-spot/anc-usdt')
+	from selenium.webdriver.firefox.options import Options
+	option = Options()
+	option.headless = True
+	wd = webdriver.Firefox(options=option)
+	wd.get('https://www.okx.com/hk/trade-spot/'+coin.lower()+'-usdt')
 except:
 	os.system("pip install selenium")
 	os.system("pip install numpy")
-	os.system("pip3 install selenium")
-	os.system("pip3 install numpy")
-	os.system("apt update")
-	os.system("apt install chromium-browser")
-	os.system("apt install snapd && snap install chromium")
+	os.system("sudo apt update")
+	os.system("sudo apt-get install firefox && sudo apt-get install firefox-geckodriver")
 	
 	import numpy as np
 	from selenium import webdriver
-	import sys
-	os.system("cp /usr/lib/chromium-browser/chromedriver /usr/bin")
-	sys.path.insert(0,'/usr/lib/chromium-browser/chromedriver')
-	chrome_options = webdriver.ChromeOptions()
-	chrome_options.add_argument('--headless')
-	chrome_options.add_argument('--no-sandbox')
-	chrome_options.add_argument('--disable-dev-shm-usage')
-	wd = webdriver.Chrome('chromedriver',chrome_options=chrome_options)
+	from selenium.webdriver.firefox.options import Options
+	option = Options()
+	option.headless = True
+	wd = webdriver.Firefox(options=option)
 	wd.get('https://www.okx.com/hk/trade-spot/'+coin.lower()+'-usdt')
 	
 
@@ -125,10 +114,10 @@ while True:
 		print()
 		print("code': '0" in str(result))
 		result = ""
-		time.sleep(1)
+		time.sleep(0.5)
 	except:
 		print(" error : 網路錯誤 或是 資金不足")
-		time.sleep(1)
+		time.sleep(0.5)
 
 	# result = accountAPI.get_account('USDT')
 	# 查看账户持仓风险 GET Position_risk
