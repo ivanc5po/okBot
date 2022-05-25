@@ -72,7 +72,7 @@ while True:
 
 	try:
 		
-		print(wd.title)
+		price = float(str(wd.title).split(" ")[0])
 		time.sleep(0.5)
 		total = float(str(fundingAPI.get_asset_valuation(ccy = 'USDT')).split(", ")[4].split("'")[3])-218263.75*int(flag)
 		every_exchange_amount = total/Split
