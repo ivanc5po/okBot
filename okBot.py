@@ -11,8 +11,9 @@ import okx.TradingData_api as TradingData
 import okx.Broker_api as Broker
 import okx.Convert_api as Convert
 import time
-import numpy as np
+
 import os
+import time
 
 start_time = time.time()
 
@@ -32,25 +33,44 @@ marketAPI = Market.MarketAPI(api_key, secret_key, passphrase, True, flag)
 publicAPI = Public.PublicAPI(api_key, secret_key, passphrase, False, flag)
 tradeAPI = Trade.TradeAPI(api_key, secret_key, passphrase, False, flag)
 
-coin = input("交易貨幣 : ")
+coin = input("交易貨幣 : ").upper()
 Split = float(input("資金分割數(USDT) : "))
 exchange_spread = float(input("價差 : "))
+
+try:
+	
+	import numpy as np
+	from selenium import webdriver
+	chrome_options = webdriver.ChromeOptions()
+	chrome_options.add_argument('--headless')
+	chrome_options.add_argument('--no-sandbox')
+	chrome_options.add_argument('--disable-dev-shm-usage')
+	wd = webdriver.Chrome('chromedriver',chrome_options=chrome_options)
+	wd.get('https://www.okx.com/hk/trade-spot/anc-usdt')
+except:
+	os.system("pip install selenium")
+	os.system("pip install numpy")
+	os.system("apt update")
+	os.system("apt install chromium-chromedriver")
+	
+	import numpy as np
+	from selenium import webdriver
+	chrome_options = webdriver.ChromeOptions()
+	chrome_options.add_argument('--headless')
+	chrome_options.add_argument('--no-sandbox')
+	chrome_options.add_argument('--disable-dev-shm-usage')
+	wd = webdriver.Chrome('chromedriver',chrome_options=chrome_options)
+	wd.get('https://www.okx.com/hk/trade-spot/'+coin.lower()+'-usdt')
+	
 
 result = ""
 text = ""
 while True:
 
 	try:
-
-		strK = str(marketAPI.get_markprice_candlesticks(coin+"-USDT")).replace("'code': '0', 'msg': '', 'data': ", "").replace("'", "").replace("[", "").replace("{", "").replace("]", "").replace("}", "").split(", ")
-		k = []
-
-		for i in range(len(strK), 0, -1):
-			if (i%5 != 0):
-				k += [float(strK[i])]
-
-		price = k[-1]
-
+		
+		print(wd.title)
+		time.sleep(0.5)
 		total = float(str(fundingAPI.get_asset_valuation(ccy = 'USDT')).split(", ")[4].split("'")[3])-218263.75*int(flag)
 		every_exchange_amount = total/Split
 
