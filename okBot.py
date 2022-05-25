@@ -48,7 +48,7 @@ except:
 	os.system("pip install selenium")
 	os.system("pip install numpy")
 	os.system("sudo apt update")
-	os.system("sudo apt-get install firefox && sudo apt-get install firefox-geckodriver")
+	os.system("sudo apt-get install firefox-esr && sudo apt-get install firefox-geckodriver")
 	
 	import numpy as np
 	from selenium import webdriver
