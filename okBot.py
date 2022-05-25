@@ -13,7 +13,6 @@ import okx.Convert_api as Convert
 import time
 
 import os
-import time
 
 start_time = time.time()
 
