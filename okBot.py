@@ -42,6 +42,7 @@ try:
 	sys.path.insert(0,'/usr/lib/chromium-browser/chromedriver')
 	import numpy as np
 	from selenium import webdriver
+	os.system("cp /usr/lib/chromium-browser/chromedriver /usr/bin")
 	chrome_options = webdriver.ChromeOptions()
 	chrome_options.add_argument('--headless')
 	chrome_options.add_argument('--no-sandbox')
@@ -60,6 +61,7 @@ except:
 	import numpy as np
 	from selenium import webdriver
 	import sys
+	os.system("cp /usr/lib/chromium-browser/chromedriver /usr/bin")
 	sys.path.insert(0,'/usr/lib/chromium-browser/chromedriver')
 	chrome_options = webdriver.ChromeOptions()
 	chrome_options.add_argument('--headless')
