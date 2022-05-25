@@ -56,7 +56,7 @@ except:
 	os.system("pip3 install numpy")
 	os.system("apt update")
 	os.system("apt install chromium-browser")
-	os.system("apt install chromium-chromedriver")
+	os.system("apt install snapd && snap install chromium")
 	
 	import numpy as np
 	from selenium import webdriver
