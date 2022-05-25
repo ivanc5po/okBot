@@ -20,9 +20,9 @@ os.system("clear")
 
 st = 0
 flag = '0'
-api_key = "227ac12e-6e8f-4897-a379-260836cf3a72"
-secret_key = "6C3D8698FC2D59729FBB63A44EAEF88B"
-passphrase = "@@pupu9521"
+api_key = "XXXXXXXXXXXXXXXXXX"
+secret_key = "XXXXXXXXXXXXXXX"
+passphrase = "XXXXXXXXXXXXXXX"
 
 tradingDataAPI = TradingData.TradingDataAPI(api_key, secret_key, passphrase, False, flag)
 accountAPI = Account.AccountAPI(api_key, secret_key, passphrase, False, flag)
