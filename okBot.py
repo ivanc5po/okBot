@@ -53,6 +53,7 @@ except:
 	os.system("pip3 install selenium")
 	os.system("pip3 install numpy")
 	os.system("apt update")
+	os.system("apt install chromium-browser")
 	os.system("apt install chromium-chromedriver")
 	
 	import numpy as np
