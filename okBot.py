@@ -117,10 +117,10 @@ while True:
 		print()
 		print("code': '0" in str(result))
 		result = ""
-		time.sleep(5)
+		time.sleep(1)
 	except:
 		print(" error : 網路錯誤 或是 資金不足")
-		time.sleep(5)
+		time.sleep(1)
 
 	# result = accountAPI.get_account('USDT')
 	# 查看账户持仓风险 GET Position_risk
