@@ -50,7 +50,7 @@ try:
 except:
 	os.system("pip3 install selenium")
 	os.system("sudo apt update")
-	os.system("sudo apt-get install snapd -y && sudo snap apt-get install chromium-browser && sudo apt install chromium-chromedriver -y")
+	os.system("sudo apt-get install snapd -y && sudo snap install chromium-browser && sudo apt install chromium-chromedriver -y")
 	
 	from selenium.webdriver.chrome.options import Options
 	chrome_options = Options()
