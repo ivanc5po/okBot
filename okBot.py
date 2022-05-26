@@ -37,7 +37,6 @@ Split = float(input("資金分割數(USDT) : "))
 exchange_spread = float(input("價差 : "))
 
 try:
-	import numpy as np
 	from selenium import webdriver
 	
 	from selenium.webdriver.chrome.options import Options
@@ -50,7 +49,6 @@ try:
 	
 except:
 	os.system("pip3 install selenium")
-	os.system("pip3 install numpy")
 	os.system("sudo apt update")
 	os.system("sudo apt-get install snapd && sudo snap apt-get install chromium-browser && sudo apt install chromium-chromedriver")
 	
@@ -75,8 +73,8 @@ while True:
 		every_exchange_amount = total/Split
 
 		if st == 0:
-			np.save("price", price)
-			np.save("get", total)
+			price_c = price
+			all_t = total
 			high_price = price
 			low_price = price
 			result = tradeAPI.place_order(instId=coin+"-USDT", tdMode='cash', side='sell', ordType='limit', px=str(price+exchange_spread), sz=str(every_exchange_amount/price))
@@ -89,16 +87,16 @@ while True:
 		elif price < low_price:
 			low_price = price
 
-		elif price > np.load("price.npy")+exchange_spread:
-			np.save("price", price)
+		elif price > price_c+exchange_spread:
+			price_c = price
 			result = tradeAPI.place_order(instId=coin+"-USDT", tdMode='cash', side='sell', ordType='limit', px=str(price+exchange_spread), sz=str(every_exchange_amount/price))
 			if "code': '0" in str(result):
 				high_price = price
 				low_price = price
 				text += " 賣出成功!!!  交易價格 : "+str(price)+"\n"
 				
-		elif price < np.load("price.npy")-exchange_spread:
-			np.save("price", price)
+		elif price < price_c-exchange_spread:
+			price_c = price
 			result = tradeAPI.place_order(instId=coin+"-USDT", tdMode='cash', side='buy', ordType='limit', px=str(price-exchange_spread), sz=str(every_exchange_amount/price))
 			if "code': '0" in str(result):
 				high_price = price
@@ -107,8 +105,8 @@ while True:
 		
 		os.system("clear")
 		print(text)
-		print("\n ------------------------------------------\n", "當前價格 :", '%.10f'%price,"\n","目前最高價 :",high_price,"\n","目前最低價 :",low_price,"\n","平衡價格 :", np.load("price.npy"),"\n ------------------------------------------")
-		print(" 總資金(USDT) :", total, "\n", "獲利(USDT) :", total-np.load("get.npy"),  "\n","獲利年化 :", ((total-np.load("get.npy"))/total)*86400/(time.time()-start_time)*36500, "%")
+		print("\n ------------------------------------------\n", "當前價格 :", '%.10f'%price,"\n","目前最高價 :",high_price,"\n","目前最低價 :",low_price,"\n","平衡價格 :", price_c,"\n ------------------------------------------")
+		print(" 總資金(USDT) :", total, "\n", "獲利(USDT) :", total-all_t,  "\n","獲利年化 :", ((total-all_t)/total)*86400/(time.time()-start_time)*36500, "%")
 		print(" ------------------------------------------")
 		print(" 單次交易量(USDT) :", every_exchange_amount)
 		print(" 價差(USDT) :", exchange_spread)
