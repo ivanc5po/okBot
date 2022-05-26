@@ -77,8 +77,6 @@ while True:
 			all_t = total
 			high_price = price
 			low_price = price
-			result = tradeAPI.place_order(instId=coin+"-USDT", tdMode='cash', side='sell', ordType='limit', px=str(price+exchange_spread), sz=str(every_exchange_amount/price))
-			result = tradeAPI.place_order(instId=coin+"-USDT", tdMode='cash', side='buy', ordType='limit', px=str(price-exchange_spread), sz=str(every_exchange_amount/price))
 			st = 1
 
 		if price > high_price:
@@ -89,7 +87,7 @@ while True:
 
 		elif price > price_c+exchange_spread:
 			price_c = price
-			result = tradeAPI.place_order(instId=coin+"-USDT", tdMode='cash', side='sell', ordType='limit', px=str(price+exchange_spread), sz=str(every_exchange_amount/price))
+			result = tradeAPI.place_order(instId=coin+"-USDT", tdMode='cash', side='sell', ordType='limit', px=str(price), sz=str(every_exchange_amount/price))
 			if "code': '0" in str(result):
 				high_price = price
 				low_price = price
@@ -97,7 +95,7 @@ while True:
 				
 		elif price < price_c-exchange_spread:
 			price_c = price
-			result = tradeAPI.place_order(instId=coin+"-USDT", tdMode='cash', side='buy', ordType='limit', px=str(price-exchange_spread), sz=str(every_exchange_amount/price))
+			result = tradeAPI.place_order(instId=coin+"-USDT", tdMode='cash', side='buy', ordType='limit', px=str(price), sz=str(every_exchange_amount/price))
 			if "code': '0" in str(result):
 				high_price = price
 				low_price = price
