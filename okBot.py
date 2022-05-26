@@ -39,23 +39,27 @@ exchange_spread = float(input("價差 : "))
 try:
 	import numpy as np
 	from selenium import webdriver
-	from selenium.webdriver.firefox.options import Options
-	option = Options()
-	option.headless = True
-	wd = webdriver.Firefox(options=option)
+	
+	from selenium.webdriver.chrome.options import Options
+	chrome_options = Options()
+	chrome_options.add_argument("--disable-gpu")
+	chrome_options.add_argument("--no-sandbox")
+	chrome_options.add_argument("--headless")
+	wd = webdriver.Chrome(options=chrome_options)
 	wd.get('https://www.okx.com/hk/trade-spot/'+coin.lower()+'-usdt')
+	
 except:
 	os.system("pip install selenium")
 	os.system("pip install numpy")
 	os.system("sudo apt update")
-	os.system("sudo apt-get install firefox && sudo apt-get install firefox-geckodriver")
+	os.system("sudo apt-get install snapd && sudo snap apt-get install chromium-browser && sudo apt install chromium-chromedriver")
 	
-	import numpy as np
-	from selenium import webdriver
-	from selenium.webdriver.firefox.options import Options
-	option = Options()
-	option.headless = True
-	wd = webdriver.Firefox(options=option)
+	from selenium.webdriver.chrome.options import Options
+	chrome_options = Options()
+	chrome_options.add_argument("--disable-gpu")
+	chrome_options.add_argument("--no-sandbox")
+	chrome_options.add_argument("--headless")
+	wd = webdriver.Chrome(options=chrome_options)
 	wd.get('https://www.okx.com/hk/trade-spot/'+coin.lower()+'-usdt')
 	
 
