@@ -49,8 +49,8 @@ try:
 	wd.get('https://www.okx.com/hk/trade-spot/'+coin.lower()+'-usdt')
 	
 except:
-	os.system("pip install selenium")
-	os.system("pip install numpy")
+	os.system("pip3 install selenium")
+	os.system("pip3 install numpy")
 	os.system("sudo apt update")
 	os.system("sudo apt-get install snapd && sudo snap apt-get install chromium-browser && sudo apt install chromium-chromedriver")
 	
