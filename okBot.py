@@ -34,35 +34,22 @@ tradeAPI = Trade.TradeAPI(api_key, secret_key, passphrase, False, flag)
 
 coin = input("交易貨幣 : ").upper()
 Split = float(input("資金分割數(USDT) : "))
-exchange_spread = float(input("價差 : "))
+exchange_spread = float(input("安全價差 : "))
+exchange_safe = float(input("回徹價差 : "))
 
-try:
-	from selenium import webdriver
-	
-	from selenium.webdriver.chrome.options import Options
-	chrome_options = Options()
-	chrome_options.add_argument("--disable-gpu")
-	chrome_options.add_argument("--no-sandbox")
-	chrome_options.add_argument("--headless")
-	wd = webdriver.Chrome(options=chrome_options)
-	wd.get('https://www.okx.com/hk/trade-spot/'+coin.lower()+'-usdt')
-	
-except:
-	os.system("pip3 install selenium")
-	os.system("sudo apt update")
-	os.system("sudo apt-get install snapd -y && sudo snap install chromium-browser && sudo apt install chromium-chromedriver -y")
-	
-	from selenium.webdriver.chrome.options import Options
-	chrome_options = Options()
-	chrome_options.add_argument("--disable-gpu")
-	chrome_options.add_argument("--no-sandbox")
-	chrome_options.add_argument("--headless")
-	wd = webdriver.Chrome(options=chrome_options)
-	wd.get('https://www.okx.com/hk/trade-spot/'+coin.lower()+'-usdt')
-	
+from selenium.webdriver.firefox.options import Options
+import numpy as np
+from selenium import webdriver
+option = Options()
+option.headless = True
+wd = webdriver.Firefox(options=option)
+wd.get('https://www.okx.com/hk/trade-spot/'+coin.lower()+'-usdt')
 
 result = ""
 text = ""
+sell_var = 0
+but_var = 0
+
 while True:
 
 	try:
@@ -85,36 +72,51 @@ while True:
 		elif price < low_price:
 			low_price = price
 
-		elif price > price_c+exchange_spread:
+		elif price > price_c+exchange_spread and high_price > price+exchange_safe:
 			price_c = price
-			result = tradeAPI.place_order(instId=coin+"-USDT", tdMode='cash', side='sell', ordType='limit', px=str(price), sz=str(every_exchange_amount/price))
-			if "code': '0" in str(result):
-				high_price = price
-				low_price = price
-				text += " 賣出成功!!!  交易價格 : "+str(price)+"\n"
+			
+			high_price = price
+			low_price = price
+			
+			sell_var += 1
+			buy_var = 0
 				
-		elif price < price_c-exchange_spread:
+		elif price < price_c-exchange_spread and low_price < price-exchange_safe:
 			price_c = price
-			result = tradeAPI.place_order(instId=coin+"-USDT", tdMode='cash', side='buy', ordType='limit', px=str(price), sz=str(every_exchange_amount/price))
+			
+			high_price = price
+			low_price = price
+			
+			sell_var = 0
+			buy_var += 1
+			
+		elif sell_var > 1:
+			result = tradeAPI.place_order(instId=coin+"-USDT", tdMode='cash', side='sell', ordType='market', sz=str(every_exchange_amount/price))
 			if "code': '0" in str(result):
-				high_price = price
-				low_price = price
+				text += " 賣出成功!!!  交易價格 : "+str(price)+"\n"
+				sell_var = 0
+				
+		elif buy_var > 1:
+			result = tradeAPI.place_order(instId=coin+"-USDT", tdMode='cash', side='buy', ordType='market', sz=str(every_exchange_amount))
+			if "code': '0" in str(result):
 				text += " 買入成功!!!  交易價格 : "+str(price)+"\n"
-		
+				buy_var = 0
+				
 		os.system("clear")
 		print(text)
-		print("\n ------------------------------------------\n", "當前價格 :", '%.10f'%price,"\n","目前最高價 :",high_price,"\n","目前最低價 :",low_price,"\n","平衡價格 :", price_c,"\n ------------------------------------------")
+		print("\n ------------------------------------------\n", "當前價格 :", '%.10f'%price,"\n","目前最高價 :",high_price, "\n","平衡價格 :", price_c,"\n","目前最低價 :",low_price,"\n ------------------------------------------")
 		print(" 總資金(USDT) :", total, "\n", "獲利(USDT) :", total-all_t,  "\n","獲利年化 :", ((total-all_t)/total)*86400/(time.time()-start_time)*36500, "%")
 		print(" ------------------------------------------")
 		print(" 單次交易量(USDT) :", every_exchange_amount)
 		print(" 價差(USDT) :", exchange_spread)
-		print()
-		print("code': '0" in str(result))
-		result = ""
-		time.sleep(0.1)
+		print(" ------------------------------------------")
+		print(" sell_var :", sell_var)
+		print(" buy_var :", buy_var)
+		print(" ------------------------------------------")
+		time.sleep(0.5)
 	except:
-		print(" error : 網路錯誤 或是 資金不足")
-		time.sleep(0.1)
+		print(" error")
+		time.sleep(0.5)
 
 	# result = accountAPI.get_account('USDT')
 	# 查看账户持仓风险 GET Position_risk
