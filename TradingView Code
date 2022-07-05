@@ -1,0 +1,122 @@
+//@version=5
+
+strategy("main", overlay=true)
+[src, _, _] = ta.macd(close, 13, 34, 9)
+lambda = input.float(defval=5000, title='Smoothing Factor (Lambda)', minval=1)
+length = input.int(defval=300, title='Filter Length', minval=1)
+
+
+/////////////////////////////////// Hodrick–Prescott HP濾波 //////////////////////////////////////////
+a = array.new_float(length, 0.0)
+b = array.new_float(length, 0.0)
+c = array.new_float(length, 0.0)
+d = array.new_float(length, 0.0)
+e = array.new_float(length, 0.0)
+f = array.new_float(length, 0.0)
+
+l1 = length - 1
+l2 = length - 2
+
+for i = 0 to l1 by 1
+    array.set(a, i, lambda * -4)
+    array.set(b, i, src[i])
+    array.set(c, i, lambda * -4)
+    array.set(d, i, lambda * 6 + 1)
+    array.set(e, i, lambda)
+    array.set(f, i, lambda)
+
+array.set(d, 0, lambda + 1.0)
+array.set(d, l1, lambda + 1.0)
+array.set(d, 1, lambda * 5.0 + 1.0)
+array.set(d, l2, lambda * 5.0 + 1.0)
+
+array.set(c, 0, lambda * -2.0)
+array.set(c, l2, lambda * -2.0)
+
+array.set(a, 0, lambda * -2.0)
+array.set(a, l2, lambda * -2.0)
+
+float r = array.get(a, 0)
+float s = array.get(a, 1)
+float t = array.get(e, 0)
+float xmult = 0.0
+
+for i = 1 to l2 by 1
+    xmult := r / array.get(d, i - 1)
+    array.set(d, i, array.get(d, i) - xmult * array.get(c, i - 1))
+    array.set(c, i, array.get(c, i) - xmult * array.get(f, i - 1))
+    array.set(b, i, array.get(b, i) - xmult * array.get(b, i - 1))
+
+    xmult := t / array.get(d, i - 1)
+    r := s - xmult * array.get(c, i - 1)
+    array.set(d, i + 1, array.get(d, i + 1) - xmult * array.get(f, i - 1))
+    array.set(b, i + 1, array.get(b, i + 1) - xmult * array.get(b, i - 1))
+
+    s := array.get(a, i + 1)
+    t := array.get(e, i)
+    t
+
+xmult := r / array.get(d, l2)
+array.set(d, l1, array.get(d, l1) - xmult * array.get(c, l2))
+
+x = array.new_float(length, 0)
+array.set(x, l1, (array.get(b, l1) - xmult * array.get(b, l2)) / array.get(d, l1))
+array.set(x, l2, (array.get(b, l2) - array.get(c, l2) * array.get(x, l1)) / array.get(d, l2))
+
+for j = 0 to length - 3 by 1
+    i = length - 3 - j
+    array.set(x, i, (array.get(b, i) - array.get(f, i) * array.get(x, i + 2) - array.get(c, i) * array.get(x, i + 1)) / array.get(d, i))
+HP = array.get(x, 0)
+/////////////////////////////////// Hodrick–Prescott HP濾波 //////////////////////////////////////////
+
+bool smooth = false
+bool smooth2 = false
+
+smooth := smooth or HP > HP[1]
+
+smooth2 := smooth2 or HP < HP[1]
+
+Color = color.white
+
+if smooth and not smooth2
+    Color := color.green
+
+else if smooth2 and not smooth
+    Color := color.red
+else
+    Color := color.white
+
+float min = 2
+
+k = array.new_float()
+k2 = array.new_float()
+
+n = 1000
+
+for i=0 to n*2
+    if HP[i] > 0
+        array.push(k, HP[i])
+    else
+        array.push(k2, HP[i])
+        
+stop_loss = input.float(4, "止損%")/100
+
+if strategy.opentrades.entry_id(strategy.opentrades-1) == "BUY" and strategy.opentrades.entry_price(strategy.opentrades-1) > open*(1+stop_loss)
+    strategy.close_all("CLOSE")
+
+if strategy.opentrades.entry_id(strategy.opentrades-1) == "BUY" and strategy.opentrades.entry_price(strategy.opentrades-1) < open*(1-stop_loss)
+    strategy.close_all("CLOSE")
+    
+if bar_index > n
+        
+    if ta.crossover(HP, array.sum(k)*min/n) and (strategy.closedtrades.entry_id(strategy.closedtrades-1) == "BUY" or strategy.closedtrades.entry_id(strategy.closedtrades-1) == na or strategy.opentrades.entry_id(strategy.opentrades-1) == "BUY")
+        strategy.entry("SELL", strategy.short)
+    
+    if ta.crossunder(HP, array.sum(k2)*min/n) and (strategy.closedtrades.entry_id(strategy.closedtrades-1) == "SELL" or strategy.closedtrades.entry_id(strategy.closedtrades-1) == na or strategy.opentrades.entry_id(strategy.opentrades-1) == "SELL")
+        strategy.entry("BUY", strategy.long)
+        
+plot(HP, color=Color, linewidth=2)
+plot(0, color=color.yellow, linewidth=2)
+plot(array.sum(k)*min/n, color=color.blue)
+plot(array.sum(k2)*min/n, color=color.blue)
+
